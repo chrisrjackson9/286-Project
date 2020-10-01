@@ -305,12 +305,8 @@ void sim(ofstream &ofs)
                 beq(rs, rt, immediate, i);
             }else if (instruction.compare("JR") == 0) {
                 
-            }else if (instruction.compare("J") == 0) {
-                iss >> immediate;
-                j(immediate, i);
-            }
+            } 
 
-            iss.clear();
             ofs << "====================" << endl;
             ofs << "Cycle: " << cycleNum << "\t" << i << "\t" << SIM_INSTR[i] << endl
                  << endl;
@@ -337,7 +333,15 @@ void sim(ofstream &ofs)
                     ofs << SIM_DATA[j] << "\t ";
                 mod++;
             }
-            ofs << endl;
+            
+            if (instruction.compare("J") == 0) {
+                iss >> immediate;
+                j(immediate, i);
+            }
+
+
+            ofs << endl << endl;
+            iss.clear();
             cycleNum++;
         }
     }
@@ -419,5 +423,5 @@ void jr(int rs)
 
 void j(int target, int& i)
 {
-    i = target;
+    i = (target - 4);
 }
