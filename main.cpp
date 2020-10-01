@@ -264,7 +264,7 @@ void sim(ofstream &ofs)
 
     for (int i = 0; i < 1000; i += 4)
     {
-        if (SIM_INSTR[i].size() != 0)
+        if (SIM_INSTR[i].size() != 0 && SIM_INSTR[i].compare("Invalid Instruction") != 0)
         {
             iss.str(DECODE[i]);
             iss >> instruction;
@@ -277,9 +277,6 @@ void sim(ofstream &ofs)
             } else if (instruction.compare("LW") == 0) {
                 iss >> rt >> immediate >> rs;
                 lw(rt, immediate, rs);
-            } else if (instruction.compare("BLTZ") == 0) {
-                iss >> rs >> immediate;
-                bltz(rs, immediate, i);
             } else if (instruction.compare("SLL") == 0) {
                 iss >> rd >> rt >> sa;
                 sll(rd, rt, sa);
@@ -297,15 +294,10 @@ void sim(ofstream &ofs)
                 movz(rd, rs, rt);
             } else if (instruction.compare("OR") == 0) {
                 
-            } else if (instruction.compare("BEQ") == 0) {
-                iss >> rs >> rt >> immediate;
-                beq(rs, rt, immediate, i);
-            }else if (instruction.compare("JR") == 0) {
-                
-            } 
+            }  
 
             ofs << "====================" << endl;
-            ofs << "Cycle: " << cycleNum << "\t" << i << "\t" << SIM_INSTR[i] << endl
+            ofs << "cycle: " << cycleNum << "\t" << i << "\t" << SIM_INSTR[i] << endl
                  << endl;
             ofs << "registers:";
             for (int i = 0; i < 32; i++)
@@ -313,7 +305,7 @@ void sim(ofstream &ofs)
                 if (i % 8 == 0)
                 {
                     ofs << endl
-                         << "r" << i << ": \t" << REGISTERS[i] << "\t";
+                         << "r" << setw(2) << setfill('0') << i << ": \t" << REGISTERS[i] << "\t";
                 }
                 else
                     ofs << REGISTERS[i] << "\t ";
@@ -334,6 +326,14 @@ void sim(ofstream &ofs)
             if (instruction.compare("J") == 0) {
                 iss >> immediate;
                 j(immediate, i);
+            } else if (instruction.compare("BLTZ") == 0) {
+                iss >> rs >> immediate;
+                bltz(rs, immediate, i);
+            } else if (instruction.compare("BEQ") == 0) {
+                iss >> rs >> rt >> immediate;
+                beq(rs, rt, immediate, i);
+            } else if (instruction.compare("JR") == 0) {
+                
             }
 
 
@@ -405,7 +405,7 @@ void beq(int rs, int rt, int offset, int& i)
 void bltz(int rs, int offset, int& i)
 {
     if (REGISTERS[rs] < 0) {
-        i += (4+offset);
+        i += (offset);
     }
 }
 
