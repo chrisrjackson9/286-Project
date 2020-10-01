@@ -366,12 +366,12 @@ void addi(int rt, int rs, int immediate)
 
 void sw(int rt, int offset, int base)
 {
-    SIM_DATA[base + offset] = REGISTERS[rt];
+    SIM_DATA[REGISTERS[base] + offset] = REGISTERS[rt];
 }
 
 void sh(int rt, int offset, int base)
 {
-    SIM_DATA[base + offset] = REGISTERS[rt];
+    SIM_DATA[REGISTERS[base] + offset] = REGISTERS[rt];
 }
 
 void lw(int rt, int offset, int base)
