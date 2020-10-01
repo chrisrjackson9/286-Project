@@ -110,12 +110,6 @@ int main(int argc, char **argv)
                 int instr_index = (4 * ((((unsigned int)i) << 6) >> 6));
 
                 //analyze opcode
-
-                /* if (valid == 0) 
-                {
-                    result << "Invalid instruction";
-                    simple << "Invalid instruction";
-                } */
                 if (x == 0)
                 {
                     text = "NOP";
