@@ -121,6 +121,9 @@ int main(int argc, char **argv)
                     text = "NOP";
                     stext = "NOP";
                 }
+                if (valid == 0) {
+                    result << "Invalid Instruction";
+                }
 
                 switch (opcode)
                 {
@@ -182,7 +185,7 @@ int main(int argc, char **argv)
                     break;
                 case 43:
                     result << "SW\t"
-                           << "R" << rt << ", " << immediate << "(" << rs << ")";
+                           << "R" << rt << ", " << immediate << "(R" << rs << ")";
                     simple << "SW " << rt << " " << immediate << " " << rs;
                     break;
                 case 36:
@@ -196,12 +199,12 @@ int main(int argc, char **argv)
                     break;
                 case 35:
                     result << "LW\t"
-                           << "R" << rt << ", " << immediate << "(" << rs << ")";
+                           << "R" << rt << ", " << immediate << "(R" << rs << ")";
                     simple << "LW " << rt << " " << immediate << " " << rs;
                     break;
                 case 73:
                     result << "SH\t"
-                           << "R" << rt << ", " << immediate << ", (" << rs << ")";
+                           << "R" << rt << ", " << immediate << ", (R" << rs << ")";
                     simple << "SH " << rt << " " << immediate << " " << rs;
                     break;
                 default:
