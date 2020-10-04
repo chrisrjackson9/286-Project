@@ -30,7 +30,7 @@ void AND(int rd, int rs, int rt);
 void beq(int rs, int rt, int offset, int& i);
 void bltz(int rs, int offset, int& i);
 void sll(int rd, int rt, int sa);
-void jr(int rs);
+void jr(int rs, int& i);
 void j(int target, int& i);
 
 int main(int argc, char **argv)
@@ -95,11 +95,12 @@ int main(int argc, char **argv)
                 binSpace.insert(7, " ");
                 binSpace.insert(13, " ");
                 binSpace.insert(19, " ");
-                binSpace.insert(24, " ");
+                binSpace.insert(25, " ");
                 binSpace.insert(31, " ");
 
                 //decode instruction
                 int valid = i >> 31;
+                int nop = (((unsigned int)i) << 1);
                 int opcode = (((unsigned int)i) >> 26);
                 int final = ((((unsigned int)i) << 26) >> 26);
                 int immediate = ((((signed int)i) << 16) >> 16);
@@ -110,10 +111,10 @@ int main(int argc, char **argv)
                 int instr_index = (4 * ((((unsigned int)i) << 6) >> 6));
 
                 //analyze opcode
-                if (x == 0)
+                if (nop == 0)
                 {
-                    text = "NOP";
-                    stext = "NOP";
+                    result << "NOP";
+                    simple <<  "NOP";
                 }
                 if (valid == 0) {
                     result << "Invalid Instruction";
@@ -124,6 +125,10 @@ int main(int argc, char **argv)
                 case 32:
                     switch (final)
                     {
+                    case 8:
+                        result << "JR\tR" << rs;
+                        simple << "JR " << rs;
+                        break;
                     case 34:
                         result << "SUB\t"
                                << "R" << rd << ", R" << rs << ", R" << rt;
@@ -134,7 +139,7 @@ int main(int argc, char **argv)
                                << "R" << rd << ", R" << rs << ", R" << rt;
                         simple << "OR " << rd << " " << rs << " " << rt;
                         break;
-                    case 6:
+                    case 10:
                         result << "MOVZ\t"
                                << "R" << rd << ", R" << rs << ", R" << rt;
                         simple << "MOVZ " << rd << " " << rs << " " << rt;
@@ -150,9 +155,16 @@ int main(int argc, char **argv)
                         simple << "ADD " << rd << " " << rs << " " << rt;
                         break;
                     case 0:
+                         if (rt != 0 || rd != 0 || sa != 0) {
                         result << "SLL\t"
                                << "R" << rd << ", R" << rt << ", #" << sa;
                         simple << "SLL " << rd << " " << rt << " " << sa;
+                        }
+                        break;
+                    case 2:
+                        result << "SRL\t"
+                               << "R" << rd << ", R" << rt << ", #" << sa;
+                        simple << "SRL " << rd << " " << rt << " " << sa;
                         break;
                     case 13:
                         result << "BREAK";
@@ -283,6 +295,9 @@ void sim(ofstream &ofs)
             } else if (instruction.compare("SUB") == 0) {
                 iss >> rd >> rs >> rt;
                 sub(rd, rs, rt);
+            } else if (instruction.compare("ADD") == 0) {
+                iss >> rd >> rs >> rt;
+                add(rd, rs, rt);
             } else if (instruction.compare("MUL") == 0) {
                 iss >> rd >> rs >> rt;
                 mul(rd, rs, rt);
@@ -310,12 +325,12 @@ void sim(ofstream &ofs)
                 else
                     ofs << REGISTERS[i] << "\t ";
             }
-            ofs << endl;
+            ofs << endl << endl << "data:";
             for (int j = dataStart; j <= addr - 4; j += 4)
             {
                 if (mod % 8 == 0)
                 {
-                    ofs << endl
+                    ofs << endl 
                          << j << ": \t" << SIM_DATA[j] << "\t";
                 }
                 else
@@ -414,8 +429,9 @@ void sll(int rd, int rt, int sa)
     REGISTERS[rd] = REGISTERS[rt]*(sa*2);
 }
 
-void jr(int rs)
+void jr(int rs, int& i)
 {
+    i = rs;
 }
 
 void j(int target, int& i)
