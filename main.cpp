@@ -27,14 +27,16 @@ void lw(int rt, int offset, int base);
 void movz(int rd, int rs, int rt);
 void OR(int rd, int rs, int rt);
 void AND(int rd, int rs, int rt);
-void beq(int rs, int rt, int offset, int& i);
-void bltz(int rs, int offset, int& i);
+void beq(int rs, int rt, int offset, int &i);
+void bltz(int rs, int offset, int &i);
 void sll(int rd, int rt, int sa);
-void jr(int rs, int& i);
-void j(int target, int& i);
+void srl(int rd, int rt, int sa);
+void jr(int rs, int &i);
+void j(int target, int &i);
 
 int main(int argc, char **argv)
 {
+    string ofile;
     ofstream assembly;
     ofstream simulator;
     ostringstream oss;
@@ -43,6 +45,8 @@ int main(int argc, char **argv)
     string binSpace;
     string text;
     string stext;
+    string disFile = "";
+    string simFile = "";
     int type = 1;
 
     for (int i = 0; i < 32; i++)
@@ -50,22 +54,29 @@ int main(int argc, char **argv)
         REGISTERS[i] = 0;
     }
 
-    isFileOpenForOutput(assembly, "testDis.txt");
-    isFileOpenForOutput(simulator, "testSim.txt");
+    
 
     char buffer[4];
     int i;
     char *iPtr;
     iPtr = (char *)(void *)&i;
-    
+
     int FD;
 
     if (argc >= 2)
     {
         FD = open(argv[1], O_RDONLY);
+        ofile = argv[2];
+        disFile = ofile + "_dis.txt";
+        simFile = ofile + "_sim.txt";
+        isFileOpenForOutput(assembly, disFile);
+        isFileOpenForOutput(simulator, simFile);
     }
-    else
+    else {
         FD = open("test1.bin", O_RDONLY);
+        isFileOpenForOutput(assembly, "testDis.txt");
+        isFileOpenForOutput(simulator, "testSim.txt");
+    }
 
     int amt = 4;
 
@@ -114,9 +125,10 @@ int main(int argc, char **argv)
                 if (nop == 0)
                 {
                     result << "NOP";
-                    simple <<  "NOP";
+                    simple << "NOP";
                 }
-                if (valid == 0) {
+                if (valid == 0)
+                {
                     result << "Invalid Instruction";
                 }
 
@@ -155,10 +167,11 @@ int main(int argc, char **argv)
                         simple << "ADD " << rd << " " << rs << " " << rt;
                         break;
                     case 0:
-                         if (rt != 0 || rd != 0 || sa != 0) {
-                        result << "SLL\t"
-                               << "R" << rd << ", R" << rt << ", #" << sa;
-                        simple << "SLL " << rd << " " << rt << " " << sa;
+                        if (rt != 0 || rd != 0 || sa != 0)
+                        {
+                            result << "SLL\t"
+                                   << "R" << rd << ", R" << rt << ", #" << sa;
+                            simple << "SLL " << rd << " " << rt << " " << sa;
                         }
                         break;
                     case 2:
@@ -174,7 +187,7 @@ int main(int argc, char **argv)
                         break;
                     }
                     break;
-                case 45:
+                case 60:
                     result << "MUL\t"
                            << "R" << rd << ", R" << rs << ", R" << rt;
                     simple << "MUL " << rd << " " << rs << " " << rt;
@@ -245,7 +258,7 @@ int main(int argc, char **argv)
             }
             addr += amt;
         } //end of if (amt ==4)
-    } //end of while (amt != 0)
+    }     //end of while (amt != 0)
     sim(simulator);
     assembly.close();
     return 0;
@@ -269,7 +282,7 @@ bool isFileOpenForOutput(ofstream &ofs, const string &filename)
 void sim(ofstream &ofs)
 {
     int cycleNum = 1;
-    int mod = 8;
+    int mod;
     int rd, rt, rs, sa, immediate;
     string instruction;
     istringstream iss;
@@ -280,79 +293,121 @@ void sim(ofstream &ofs)
         {
             iss.str(DECODE[i]);
             iss >> instruction;
-            if (instruction.compare("ADDI") == 0) {
+            if (instruction.compare("ADDI") == 0)
+            {
                 iss >> rt >> rs >> immediate;
                 addi(rt, rs, immediate);
-            } else if (instruction.compare("SW") == 0) {
+            }
+            else if (instruction.compare("SW") == 0)
+            {
                 iss >> rt >> immediate >> rs;
                 sw(rt, immediate, rs);
-            } else if (instruction.compare("LW") == 0) {
+            }
+            else if (instruction.compare("LW") == 0)
+            {
                 iss >> rt >> immediate >> rs;
                 lw(rt, immediate, rs);
-            } else if (instruction.compare("SLL") == 0) {
+            }
+            else if (instruction.compare("SLL") == 0)
+            {
                 iss >> rd >> rt >> sa;
                 sll(rd, rt, sa);
-            } else if (instruction.compare("SUB") == 0) {
+            }
+            else if (instruction.compare("SRL") == 0)
+            {
+                iss >> rd >> rt >> sa;
+                srl(rd, rt, sa);
+            }
+            else if (instruction.compare("SUB") == 0)
+            {
                 iss >> rd >> rs >> rt;
                 sub(rd, rs, rt);
-            } else if (instruction.compare("ADD") == 0) {
+            }
+            else if (instruction.compare("ADD") == 0)
+            {
                 iss >> rd >> rs >> rt;
                 add(rd, rs, rt);
-            } else if (instruction.compare("MUL") == 0) {
+            }
+            else if (instruction.compare("MUL") == 0)
+            {
                 iss >> rd >> rs >> rt;
                 mul(rd, rs, rt);
-            } else if (instruction.compare("SH") == 0) {
+            }
+            else if (instruction.compare("SH") == 0)
+            {
                 iss >> rt >> immediate >> rs;
                 sh(rt, immediate, rs);
-            } else if (instruction.compare("MOVZ") == 0) {
+            }
+            else if (instruction.compare("MOVZ") == 0)
+            {
                 iss >> rd >> rs >> rt;
                 movz(rd, rs, rt);
-            } else if (instruction.compare("OR") == 0) {
-                
-            }  
+            }
+            else if (instruction.compare("OR") == 0)
+            {
+                iss >> rd >> rs >> rt;
+                OR(rd, rs, rt);
+            } 
+            else if (instruction.compare("AND") == 0)
+            {
+                iss >> rd >> rs >> rt;
+                AND(rd, rs, rt);
+            }
 
             ofs << "====================" << endl;
             ofs << "cycle: " << cycleNum << "\t" << i << "\t" << SIM_INSTR[i] << endl
-                 << endl;
+                << endl;
             ofs << "registers:";
             for (int i = 0; i < 32; i++)
             {
                 if (i % 8 == 0)
                 {
                     ofs << endl
-                         << "r" << setw(2) << setfill('0') << i << ": \t" << REGISTERS[i] << "\t";
+                        << "r" << setw(2) << setfill('0') << i << ": \t" << REGISTERS[i] << "\t";
                 }
                 else
                     ofs << REGISTERS[i] << "\t ";
             }
-            ofs << endl << endl << "data:";
+
+            ofs << endl
+                << endl
+                << "data:";
+            
+            mod =8;
+
             for (int j = dataStart; j <= addr - 4; j += 4)
             {
                 if (mod % 8 == 0)
                 {
-                    ofs << endl 
-                         << j << ": \t" << SIM_DATA[j] << "\t";
+                    ofs << endl
+                        << j << ": \t" << SIM_DATA[j] << "\t";
                 }
                 else
                     ofs << SIM_DATA[j] << "\t ";
                 mod++;
             }
-            
-            if (instruction.compare("J") == 0) {
+
+            if (instruction.compare("J") == 0)
+            {
                 iss >> immediate;
                 j(immediate, i);
-            } else if (instruction.compare("BLTZ") == 0) {
+            }
+            else if (instruction.compare("BLTZ") == 0)
+            {
                 iss >> rs >> immediate;
                 bltz(rs, immediate, i);
-            } else if (instruction.compare("BEQ") == 0) {
+            }
+            else if (instruction.compare("BEQ") == 0)
+            {
                 iss >> rs >> rt >> immediate;
                 beq(rs, rt, immediate, i);
-            } else if (instruction.compare("JR") == 0) {
-                
+            }
+            else if (instruction.compare("JR") == 0)
+            {
             }
 
-
-            ofs << endl << endl;
+            ofs << endl
+                << endl;
             iss.clear();
             cycleNum++;
         }
@@ -396,45 +451,54 @@ void lw(int rt, int offset, int base)
 
 void movz(int rd, int rs, int rt)
 {
-    if (REGISTERS[rt] == 0) {
+    if (REGISTERS[rt] == 0)
+    {
         REGISTERS[rd] = REGISTERS[rs];
     }
 }
 
 void OR(int rd, int rs, int rt)
 {
-
+    REGISTERS[rd] = (REGISTERS[rs] | REGISTERS[rt]);
 }
 
 void AND(int rd, int rs, int rt)
 {
+    REGISTERS[rd] = (REGISTERS[rs] & REGISTERS[rt]);
 }
 
-void beq(int rs, int rt, int offset, int& i)
+void beq(int rs, int rt, int offset, int &i)
 {
-    if (REGISTERS[rs] == REGISTERS[rt]) {
+    if (REGISTERS[rs] == REGISTERS[rt])
+    {
         i = offset;
     }
 }
 
-void bltz(int rs, int offset, int& i)
+void bltz(int rs, int offset, int &i)
 {
-    if (REGISTERS[rs] < 0) {
+    if (REGISTERS[rs] < 0)
+    {
         i += (offset);
     }
 }
 
 void sll(int rd, int rt, int sa)
 {
-    REGISTERS[rd] = REGISTERS[rt]*(sa*2);
+    REGISTERS[rd] = REGISTERS[rt] * (sa * 2);
 }
 
-void jr(int rs, int& i)
+void srl(int rd, int rt, int sa)
+{
+    REGISTERS[rd] = REGISTERS[rt] / (sa * 2);
+}
+
+void jr(int rs, int &i)
 {
     i = rs;
 }
 
-void j(int target, int& i)
+void j(int target, int &i)
 {
     i = (target - 4);
 }
