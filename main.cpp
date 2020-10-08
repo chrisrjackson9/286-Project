@@ -65,8 +65,8 @@ int main(int argc, char **argv)
 
     if (argc >= 2)
     {
-        FD = open(argv[1], O_RDONLY);
-        ofile = argv[2];
+        FD = open(argv[2], O_RDONLY);
+        ofile = argv[4];
         disFile = ofile + "_dis.txt";
         simFile = ofile + "_sim.txt";
         isFileOpenForOutput(assembly, disFile);
